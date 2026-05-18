@@ -35,6 +35,10 @@ venv/
 /kotlin/.mvn/
 /kotlin/dependency-reduced-pom.xml
 
+# Node.js
+/node/node_modules/
+/node/npm-debug.log*
+
 # C
 /c/bin/
 *.o
