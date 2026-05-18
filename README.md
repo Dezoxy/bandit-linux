@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, and Java rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, and C rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -10,7 +10,8 @@ The Bash app is complete, and the Python, Go, and Java rewrites read the level f
 - `python/bandit_helper.py` - Python rewrite of the helper and config-driven refresh flow.
 - `go/cmd/bandit-helper/` - Go rewrite of the helper and config-driven refresh flow.
 - `java/src/main/java/bandit/BanditHelper.java` - Java rewrite of the helper and config-driven refresh flow.
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, and Java.
+- `c/bandit-helper.c` - C rewrite of the helper and config-driven refresh flow (vendored [tomlc99](https://github.com/cktan/tomlc99) under `c/vendor/tomlc99/`).
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, and C.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -24,6 +25,7 @@ Local tools:
 - Python 3.11+
 - Go 1.26+
 - Java 25+ and Maven 3.9+ (only for the Java rewrite)
+- C11 compiler and `make` (only for the C rewrite)
 - OpenSSH client
 - `expect`
 - `git`
@@ -177,6 +179,52 @@ Run the unit tests:
 mvn -f java/pom.xml test
 ```
 
+## C Version
+
+Build the C rewrite:
+
+```bash
+make -C c
+```
+
+Run the C rewrite:
+
+```bash
+c/bin/bandit-helper
+```
+
+Refresh through C:
+
+```bash
+c/bin/bandit-helper --refresh
+```
+
+Use another level config:
+
+```bash
+c/bin/bandit-helper --config levels/bandit-levels.toml --refresh
+```
+
+Show saved passwords:
+
+```bash
+c/bin/bandit-helper --show
+```
+
+SSH into a saved level:
+
+```bash
+c/bin/bandit-helper --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+make -C c test
+```
+
+The TOML parser ([tomlc99](https://github.com/cktan/tomlc99), MIT) is vendored under `c/vendor/tomlc99/` so there is no system dependency to install.
+
 ## Configuration
 
 The default target is:
@@ -191,7 +239,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, and Java implementations read level behavior from:
+The Python, Go, Java, and C implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml
@@ -223,6 +271,13 @@ For Java, override the config the same way:
 ```bash
 BANDIT_LEVELS_FILE=levels/bandit-levels.toml java -jar java/target/bandit-helper.jar --refresh
 java -jar java/target/bandit-helper.jar --config levels/bandit-levels.toml --refresh
+```
+
+For C:
+
+```bash
+BANDIT_LEVELS_FILE=levels/bandit-levels.toml c/bin/bandit-helper --refresh
+c/bin/bandit-helper --config levels/bandit-levels.toml --refresh
 ```
 
 ## Git Safety

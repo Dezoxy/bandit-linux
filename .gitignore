@@ -30,6 +30,11 @@ venv/
 /java/dependency-reduced-pom.xml
 *.class
 
+# C
+/c/bin/
+*.o
+*.dSYM/
+
 # macOS metadata
 .DS_Store
 
