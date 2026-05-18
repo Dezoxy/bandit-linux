@@ -6,8 +6,9 @@ HOST="${BANDIT_HOST:-bandit.labs.overthewire.org}"
 PORT="${BANDIT_PORT:-2220}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PASSFILE="$SCRIPT_DIR/bandit-passwords.txt"
-KEY_DIR="$SCRIPT_DIR/.bandit-keys"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PASSFILE="$REPO_ROOT/bandit-passwords.txt"
+KEY_DIR="$REPO_ROOT/.bandit-keys"
 
 mkdir -p "$KEY_DIR"
 chmod 700 "$KEY_DIR"

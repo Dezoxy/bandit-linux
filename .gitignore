@@ -8,6 +8,22 @@ bandit-passwords.txt
 tmp/
 .cache/
 
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Go
+/go/bandit-helper
+/go/bin/
+/go/*.test
+/go/coverage.out
+/go/cmd/*/bandit-helper
+
 # macOS metadata
 .DS_Store
 

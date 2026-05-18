@@ -1,0 +1,226 @@
+[connection]
+host = "bandit.labs.overthewire.org"
+port = 2220
+
+[bootstrap]
+level = 0
+password = "bandit0"
+
+[[steps]]
+from = 0
+to = 1
+type = "ssh_command"
+command = "cat readme"
+
+[[steps]]
+from = 1
+to = 2
+type = "ssh_command"
+command = "cat ./-"
+
+[[steps]]
+from = 2
+to = 3
+type = "ssh_command"
+command = "cat './--spaces in this filename--'"
+
+[[steps]]
+from = 3
+to = 4
+type = "ssh_command"
+command = "cat inhere/...Hiding-From-You"
+
+[[steps]]
+from = 4
+to = 5
+type = "ssh_command"
+command = "cat inhere/-file07"
+
+[[steps]]
+from = 5
+to = 6
+type = "path_then_command"
+find_command = "find ~/inhere -type f -size 1033c ! -executable 2>/dev/null"
+command = "cat '{path}'"
+
+[[steps]]
+from = 6
+to = 7
+type = "ssh_command"
+command = "find / -user bandit7 -group bandit6 -size 33c -exec cat {} \\; 2>/dev/null || true"
+
+[[steps]]
+from = 7
+to = 8
+type = "ssh_command"
+command = "grep millionth data.txt"
+
+[[steps]]
+from = 8
+to = 9
+type = "ssh_command"
+command = "sort data.txt | uniq -u"
+
+[[steps]]
+from = 9
+to = 10
+type = "ssh_command"
+command = "strings data.txt | grep ==="
+
+[[steps]]
+from = 10
+to = 11
+type = "ssh_command"
+command = "base64 -d data.txt"
+
+[[steps]]
+from = 11
+to = 12
+type = "ssh_command"
+command = "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt"
+
+[[steps]]
+from = 12
+to = 13
+type = "ssh_command"
+command = '''
+tmp=$(mktemp -d); cd "$tmp" || exit 1; cp ~/data.txt data.hex; xxd -r data.hex data.bin; file=data.bin; for _ in $(seq 1 20); do type=$(file -b "$file"); case "$type" in *gzip*) mv "$file" "$file.gz"; gzip -dc "$file.gz" > next ;; *bzip2*) mv "$file" "$file.bz2"; bzip2 -dc "$file.bz2" > next ;; *tar\ archive*) mv "$file" "$file.tar"; tar -xf "$file.tar"; next_file=$(tar -tf "$file.tar" | head -n 1); cp "$next_file" next ;; *ASCII\ text*) cat "$file"; break ;; *) cat "$file"; break ;; esac; file=next; done; rm -rf "$tmp"
+'''
+
+[[steps]]
+from = 13
+to = 14
+type = "private_key_then_ssh"
+key_command = "cat sshkey.private"
+key_name = "bandit14.key"
+next_user = "bandit14"
+next_command = "cat /etc/bandit_pass/bandit14"
+
+[[steps]]
+from = 14
+to = 15
+type = "ssh_command"
+command = "printf '%s\\n' '{password}' | nc localhost 30000"
+
+[[steps]]
+from = 15
+to = 16
+type = "ssh_command"
+command = "printf '%s\\n' '{password}' | timeout 10 openssl s_client -connect localhost:30001 -quiet 2>/dev/null"
+
+[[steps]]
+from = 16
+to = 17
+type = "private_key_then_ssh"
+key_command = '''
+ports=$(nmap -p 31000-32000 --open localhost 2>/dev/null | awk '/^[0-9]+\/tcp/ { split($1,a,"/"); print a[1] }'); for port in $ports; do response=$(printf '%s\n' '{password}' | timeout 8 openssl s_client -connect localhost:$port -quiet 2>/dev/null || true); if printf '%s\n' "$response" | grep -q 'BEGIN .*PRIVATE KEY'; then printf '%s\n' "$response"; exit 0; fi; done; exit 1
+'''
+key_name = "bandit17.key"
+next_user = "bandit17"
+next_command = "cat /etc/bandit_pass/bandit17"
+
+[[steps]]
+from = 17
+to = 18
+type = "ssh_command"
+command = "diff passwords.old passwords.new || true"
+
+[[steps]]
+from = 18
+to = 19
+type = "ssh_command"
+command = "cat readme"
+
+[[steps]]
+from = 19
+to = 20
+type = "ssh_command"
+command = "./bandit20-do cat /etc/bandit_pass/bandit20"
+
+[[steps]]
+from = 20
+to = 21
+type = "ssh_command"
+command = "port={random_port}; out=$(mktemp); (printf '%s\\n' '{password}' | nc -l -p $port > $out &) ; sleep 1; ./suconnect $port >/dev/null; sleep 1; cat $out; rm -f $out"
+
+[[steps]]
+from = 21
+to = 22
+type = "ssh_command"
+command = "cat /tmp/t7O6lds9S0RqQh9aMcz6ShpAoZKF7fgv"
+
+[[steps]]
+from = 22
+to = 23
+type = "ssh_command"
+command = '''
+target=$(echo I am user bandit23 | md5sum | cut -d " " -f 1); cat /tmp/$target
+'''
+
+[[steps]]
+from = 23
+to = 24
+type = "ssh_command"
+command = '''
+out='{temp_output}'; rm -f "$out"; touch "$out"; chmod 666 "$out"; script=$(mktemp /tmp/bandit23solve.XXXXXX); printf '%s\n' '#!/bin/bash' 'cat /etc/bandit_pass/bandit24 > {temp_output}' > "$script"; chmod 777 "$script"; cp "$script" /var/spool/bandit24/foo/solve-$$.sh; sleep 70; cat "$out"; rm -f "$script" "$out"
+'''
+
+[[steps]]
+from = 24
+to = 25
+type = "ssh_command"
+command = "for pin in $(seq -w 0 9999); do printf '%s %s\\n' '{password}' \"$pin\"; done | nc localhost 30002"
+
+[[steps]]
+from = 25
+to = [26, 27]
+type = "bandit26_escape"
+key_command = "cat bandit26.sshkey"
+key_name = "bandit26.key"
+
+[[steps]]
+from = 27
+to = 28
+type = "git_read_file"
+git_user = "bandit27-git"
+repo = "/home/bandit27-git/repo"
+file = "README"
+
+[[steps]]
+from = 28
+to = 29
+type = "git_show"
+git_user = "bandit28-git"
+repo = "/home/bandit28-git/repo"
+object = "HEAD~1:README.md"
+
+[[steps]]
+from = 29
+to = 30
+type = "git_show"
+git_user = "bandit29-git"
+repo = "/home/bandit29-git/repo"
+object = "origin/dev:README.md"
+
+[[steps]]
+from = 30
+to = 31
+type = "git_show"
+git_user = "bandit30-git"
+repo = "/home/bandit30-git/repo"
+object = "secret"
+
+[[steps]]
+from = 31
+to = 32
+type = "git_push_file"
+git_user = "bandit31-git"
+repo = "/home/bandit31-git/repo"
+file = "key.txt"
+content = "May I come in?\n"
+commit_message = "solve bandit31"
+
+[[steps]]
+from = 32
+to = 33
+type = "uppercase_shell"
