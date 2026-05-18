@@ -23,7 +23,7 @@ Local tools:
 - Bash
 - Python 3.11+
 - Go 1.26+
-- Java 21+ and Maven 3.9+ (only for the Java rewrite)
+- Java 25+ and Maven 3.9+ (only for the Java rewrite)
 - OpenSSH client
 - `expect`
 - `git`
