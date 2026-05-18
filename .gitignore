@@ -1,0 +1,19 @@
+# Local Bandit state. Do not commit solved passwords or private keys.
+bandit-passwords.txt
+.bandit-keys/
+
+# Runtime scratch files
+*.tmp
+*.log
+tmp/
+.cache/
+
+# macOS metadata
+.DS_Store
+
+# Editor and tool noise
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

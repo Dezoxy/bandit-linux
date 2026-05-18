@@ -1,0 +1,7 @@
+* text=auto
+
+*.sh text eol=lf
+*.md text eol=lf
+.gitignore text eol=lf
+.editorconfig text eol=lf
+bandit-passwords.example text eol=lf
