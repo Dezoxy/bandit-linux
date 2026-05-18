@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, and C rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, and Kotlin rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -11,7 +11,8 @@ The Bash app is complete, and the Python, Go, Java, and C rewrites read the leve
 - `go/cmd/bandit-helper/` - Go rewrite of the helper and config-driven refresh flow.
 - `java/src/main/java/bandit/BanditHelper.java` - Java rewrite of the helper and config-driven refresh flow.
 - `c/bandit-helper.c` - C rewrite of the helper and config-driven refresh flow (vendored [tomlc99](https://github.com/cktan/tomlc99) under `c/vendor/tomlc99/`).
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, and C.
+- `kotlin/src/main/kotlin/bandit/BanditHelper.kt` - Kotlin rewrite of the helper, sharing the JVM toolchain with the Java port.
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, and Kotlin.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -26,6 +27,7 @@ Local tools:
 - Go 1.26+
 - Java 25+ and Maven 3.9+ (only for the Java rewrite)
 - C11 compiler and `make` (only for the C rewrite)
+- Kotlin 2.x (only for the Kotlin rewrite — JDK 21+ via the same Maven install as the Java port)
 - OpenSSH client
 - `expect`
 - `git`
@@ -225,6 +227,46 @@ make -C c test
 
 The TOML parser ([tomlc99](https://github.com/cktan/tomlc99), MIT) is vendored under `c/vendor/tomlc99/` so there is no system dependency to install.
 
+## Kotlin Version
+
+Build the Kotlin rewrite (reuses the Java port's JDK + Maven setup):
+
+```bash
+mvn -f kotlin/pom.xml package
+```
+
+Run the Kotlin rewrite:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar
+```
+
+Refresh through Kotlin:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar --refresh
+```
+
+Show saved passwords:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar --show
+```
+
+SSH into a saved level:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+mvn -f kotlin/pom.xml test
+```
+
+The Kotlin port shares `tomlj` with the Java port and targets the JVM, so no separate runtime install is needed beyond a JDK.
+
 ## Configuration
 
 The default target is:
@@ -239,7 +281,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, and C implementations read level behavior from:
+The Python, Go, Java, C, and Kotlin implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml

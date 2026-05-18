@@ -30,6 +30,11 @@ venv/
 /java/dependency-reduced-pom.xml
 *.class
 
+# Kotlin
+/kotlin/target/
+/kotlin/.mvn/
+/kotlin/dependency-reduced-pom.xml
+
 # C
 /c/bin/
 *.o
