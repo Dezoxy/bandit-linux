@@ -24,6 +24,12 @@ venv/
 /go/coverage.out
 /go/cmd/*/bandit-helper
 
+# Java
+/java/target/
+/java/.mvn/
+/java/dependency-reduced-pom.xml
+*.class
+
 # macOS metadata
 .DS_Store
 
