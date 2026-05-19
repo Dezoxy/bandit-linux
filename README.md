@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, and TypeScript rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, TypeScript, and Zig rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -19,7 +19,8 @@ The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust
 - `perl/bandit_helper.pl` - Perl rewrite of the helper, using only core Perl modules.
 - `swift/Sources/BanditCore/BanditCore.swift` - Swift rewrite of the helper (`swift/Sources/BanditHelperCLI/` thin CLI wrapper, `swift/Sources/BanditTest/` test runner).
 - `typescript/src/bandit-helper.ts` - TypeScript rewrite of the helper (compiles to `typescript/dist/`).
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, and TypeScript.
+- `zig/src/main.zig` - Zig rewrite of the helper with a hand-rolled TOML parser tailored to `bandit-levels.toml`.
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, TypeScript, and Zig.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -42,6 +43,7 @@ Local tools:
 - Perl 5.34+ (only for the Perl rewrite; no CPAN modules required)
 - Swift 5.10+ / 6.x (Apple toolchain, e.g. macOS Command Line Tools or Xcode — only for the Swift rewrite)
 - TypeScript 5.6+ (only for the TypeScript rewrite — shares the Node.js runtime with the Node port)
+- Zig 0.15.x (only for the Zig rewrite; install via `brew install zig@0.15`)
 - OpenSSH client
 - `expect`
 - `git`
@@ -578,6 +580,46 @@ cd typescript && npm run typecheck
 
 The TypeScript port reuses [`smol-toml`](https://www.npmjs.com/package/smol-toml) and adds full type annotations on top of the Node.js logic. Tests run on the compiled `.js` output via the built-in `node:test` runner.
 
+## Zig Version
+
+Build the Zig rewrite:
+
+```bash
+cd zig && zig build
+```
+
+Run the Zig rewrite:
+
+```bash
+zig/zig-out/bin/bandit-helper
+```
+
+Refresh through Zig:
+
+```bash
+zig/zig-out/bin/bandit-helper --refresh
+```
+
+Show saved passwords:
+
+```bash
+zig/zig-out/bin/bandit-helper --show
+```
+
+SSH into a saved level:
+
+```bash
+zig/zig-out/bin/bandit-helper --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cd zig && zig build test --summary all
+```
+
+The Zig port targets Zig 0.15. (Zig 0.14 doesn't link against the macOS Tahoe SDK; Zig 0.16 rewrote std around a new `Io` abstraction that would require a separate port.) If `zig` on your PATH is a different version, use `/opt/homebrew/opt/zig@0.15/bin/zig build` directly. The port has no external dependencies — the TOML parser is hand-rolled and tailored to the schema in `levels/bandit-levels.toml`.
+
 ## Configuration
 
 The default target is:
@@ -592,7 +634,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, and TypeScript implementations read level behavior from:
+The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, TypeScript, and Zig implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml

@@ -4,6 +4,8 @@ const builtin = @import("builtin");
 const DEFAULT_HOST = "bandit.labs.overthewire.org";
 const DEFAULT_PORT = "2220";
 
+const Kv = struct { key: []const u8, value: []const u8 };
+
 // =============================================================================
 // Minimal TOML parser (tailored to bandit-levels.toml schema).
 // Supports: top-level tables [name] and [[name]], string ("..."), literal
@@ -35,9 +37,8 @@ pub const Table = struct {
         value: Value,
     };
 
-    pub fn init(allocator: std.mem.Allocator) Table {
+    pub fn init(_: std.mem.Allocator) Table {
         return .{ .entries = std.ArrayList(Entry){} };
-        _ = allocator;
     }
 
     pub fn get(self: *const Table, key: []const u8) ?*const Value {
@@ -211,7 +212,7 @@ const Parser = struct {
         return std.fmt.parseInt(i64, self.src[start..self.pos], 10) catch TomlError.InvalidInteger;
     }
 
-    fn parseArray(self: *Parser) ![]Value {
+    fn parseArray(self: *Parser) (TomlError || std.mem.Allocator.Error)![]Value {
         if (!self.match('[')) return TomlError.UnexpectedChar;
         var items: std.ArrayList(Value) = .{};
         self.skipBlanks();
@@ -237,7 +238,7 @@ const Parser = struct {
         return TomlError.UnterminatedString;
     }
 
-    fn parseValue(self: *Parser) !Value {
+    fn parseValue(self: *Parser) (TomlError || std.mem.Allocator.Error)!Value {
         self.skipSpace();
         const c = self.peek() orelse return TomlError.EndOfInput;
         if (c == '"') return Value{ .string = try self.parseQuotedString() };
@@ -333,7 +334,7 @@ const App = struct {
 
     fn ensureState(self: *App) !void {
         try std.fs.cwd().makePath(self.key_dir);
-        std.posix.chmod(self.key_dir, 0o700) catch {};
+        chmodPath(self.key_dir, 0o700);
         const f = std.fs.cwd().createFile(self.pass_file, .{ .truncate = false }) catch |err| switch (err) {
             error.PathAlreadyExists => null,
             else => return err,
@@ -342,7 +343,7 @@ const App = struct {
             var open = opened;
             open.close();
         }
-        std.posix.chmod(self.pass_file, 0o600) catch {};
+        chmodPath(self.pass_file, 0o600);
     }
 };
 
@@ -353,9 +354,18 @@ fn envOr(name: []const u8, fallback: []const u8) []const u8 {
     return fallback;
 }
 
+fn chmodPath(path: []const u8, mode: u32) void {
+    var buf: [std.fs.max_path_bytes]u8 = undefined;
+    if (path.len + 1 >= buf.len) return;
+    @memcpy(buf[0..path.len], path);
+    buf[path.len] = 0;
+    const cstr: [*:0]const u8 = @ptrCast(&buf);
+    _ = std.c.chmod(cstr, @intCast(mode));
+}
+
 fn findRepoRoot(allocator: std.mem.Allocator) ![]const u8 {
     var cwd_buf: [std.fs.max_path_bytes]u8 = undefined;
-    var cwd = try std.process.getCwd(&cwd_buf);
+    var cwd: []const u8 = try std.process.getCwd(&cwd_buf);
     while (true) {
         const probe = try std.fs.path.join(allocator, &.{ cwd, "levels", "bandit-levels.toml" });
         defer allocator.free(probe);
@@ -369,8 +379,10 @@ fn findRepoRoot(allocator: std.mem.Allocator) ![]const u8 {
 }
 
 fn die(msg: []const u8) noreturn {
-    const w = std.fs.File.stderr().writer(&.{}).interface;
-    w.print("error: {s}\n", .{msg}) catch {};
+    var buf: [4096]u8 = undefined;
+    var writer = std.fs.File.stderr().writer(&buf);
+    writer.interface.print("error: {s}\n", .{msg}) catch {};
+    writer.interface.flush() catch {};
     std.process.exit(1);
 }
 
@@ -466,7 +478,7 @@ fn freePasswords(allocator: std.mem.Allocator, pws: [][]const u8) void {
     allocator.free(pws);
 }
 
-pub fn extractPasswordOrErr(allocator: std.mem.Allocator, src: []const u8) ![]const u8 {
+pub fn extractPasswordOrErr(allocator: std.mem.Allocator, src: []const u8) ![]u8 {
     const pws = try extractPasswords(allocator, src);
     defer freePasswords(allocator, pws);
     if (pws.len == 0) return error.NoPasswordFound;
@@ -481,7 +493,7 @@ fn isFullPassword(s: []const u8) bool {
     return true;
 }
 
-pub fn renderTemplate(allocator: std.mem.Allocator, template: []const u8, vars: []const struct { key: []const u8, value: []const u8 }) ![]u8 {
+pub fn renderTemplate(allocator: std.mem.Allocator, template: []const u8, vars: []const Kv) ![]u8 {
     var current = try allocator.dupe(u8, template);
     for (vars) |kv| {
         const placeholder = try std.fmt.allocPrint(allocator, "{{{s}}}", .{kv.key});
@@ -558,14 +570,14 @@ fn runCommand(
     return ProcResult{ .exit_code = code, .output = try combined.toOwnedSlice(allocator) };
 }
 
-fn buildEnv(allocator: std.mem.Allocator, kvs: []const struct { key: []const u8, value: []const u8 }) !std.process.EnvMap {
+fn buildEnv(allocator: std.mem.Allocator, kvs: []const Kv) !std.process.EnvMap {
     var env = try std.process.getEnvMap(allocator);
     errdefer env.deinit();
     for (kvs) |kv| try env.put(kv.key, kv.value);
     return env;
 }
 
-fn runExpectOrErr(allocator: std.mem.Allocator, script: []const u8, env_kvs: []const struct { key: []const u8, value: []const u8 }) ![]u8 {
+fn runExpectOrErr(allocator: std.mem.Allocator, script: []const u8, env_kvs: []const Kv) ![]u8 {
     var env = try buildEnv(allocator, env_kvs);
     defer env.deinit();
     const r = try runCommand(allocator, &.{"expect"}, env, script);
@@ -797,7 +809,7 @@ fn savePassword(app: *App, user: []const u8, password: []const u8) !void {
     var file = try std.fs.cwd().createFile(app.pass_file, .{});
     defer file.close();
     try file.writeAll(out.items);
-    std.posix.chmod(app.pass_file, 0o600) catch {};
+    chmodPath(app.pass_file, 0o600);
 }
 
 fn getSavedPassword(app: *App, user: []const u8) ![]u8 {
@@ -946,10 +958,10 @@ fn passwordMapDeinit(map: *std.AutoHashMap(i64, []const u8), allocator: std.mem.
     map.deinit();
 }
 
-fn stepContextVars(allocator: std.mem.Allocator, app: *App, level: i64, password: []const u8, to_level: i64) ![]const struct { key: []const u8, value: []const u8 } {
+fn stepContextVars(allocator: std.mem.Allocator, app: *App, level: i64, password: []const u8, to_level: i64) ![]const Kv {
     const port = 20000 + app.rng.random().intRangeAtMost(u32, 0, 9999);
     const suffix = 1000 + app.rng.random().intRangeAtMost(u32, 0, 8999);
-    var arr: std.ArrayList(struct { key: []const u8, value: []const u8 }) = .{};
+    var arr: std.ArrayList(Kv) = .{};
     try arr.append(allocator, .{ .key = "password", .value = try allocator.dupe(u8, password) });
     try arr.append(allocator, .{ .key = "level", .value = try std.fmt.allocPrint(allocator, "{d}", .{level}) });
     try arr.append(allocator, .{ .key = "to", .value = try std.fmt.allocPrint(allocator, "{d}", .{to_level}) });
@@ -958,14 +970,14 @@ fn stepContextVars(allocator: std.mem.Allocator, app: *App, level: i64, password
     return try arr.toOwnedSlice(allocator);
 }
 
-fn freeCtxVars(allocator: std.mem.Allocator, vars: []const struct { key: []const u8, value: []const u8 }) void {
+fn freeCtxVars(allocator: std.mem.Allocator, vars: []const Kv) void {
     for (vars) |kv| allocator.free(kv.value);
     allocator.free(vars);
 }
 
 fn runPasswordSshCommand(app: *App, user: []const u8, password: []const u8, command_text: []const u8) ![]u8 {
     const allocator = app.allocator;
-    const kvs = [_]struct { key: []const u8, value: []const u8 }{
+    const kvs = [_]Kv{
         .{ .key = "BANDIT_HOST_VALUE", .value = app.host },
         .{ .key = "BANDIT_PORT_VALUE", .value = app.port },
         .{ .key = "BANDIT_USER_VALUE", .value = user },
@@ -1035,12 +1047,12 @@ fn savePrivateKey(app: *App, name: []const u8, output: []const u8) ![]const u8 {
     defer file.close();
     try file.writeAll(blob);
     try file.writeAll("\n");
-    std.posix.chmod(key_file, 0o600) catch {};
+    chmodPath(key_file, 0o600);
     return key_file;
 }
 
 fn solveBandit26Pair(app: *App, key_file: []const u8) !struct { first: []u8, second: []u8 } {
-    const kvs = [_]struct { key: []const u8, value: []const u8 }{
+    const kvs = [_]Kv{
         .{ .key = "BANDIT_HOST_VALUE", .value = app.host },
         .{ .key = "BANDIT_PORT_VALUE", .value = app.port },
         .{ .key = "BANDIT_KEY_VALUE", .value = key_file },
@@ -1057,7 +1069,7 @@ fn solveBandit26Pair(app: *App, key_file: []const u8) !struct { first: []u8, sec
 }
 
 fn solveUppercaseShell(app: *App, password: []const u8) ![]u8 {
-    const kvs = [_]struct { key: []const u8, value: []const u8 }{
+    const kvs = [_]Kv{
         .{ .key = "BANDIT_HOST_VALUE", .value = app.host },
         .{ .key = "BANDIT_PORT_VALUE", .value = app.port },
         .{ .key = "BANDIT_PASSWORD_VALUE", .value = password },
@@ -1072,7 +1084,7 @@ fn writeAskpass(allocator: std.mem.Allocator, dir: []const u8) ![]u8 {
     var f = try std.fs.cwd().createFile(askpass, .{});
     defer f.close();
     try f.writeAll("#!/usr/bin/env bash\nprintf '%s\\n' \"$BANDIT_GIT_PASSWORD\"\n");
-    std.posix.chmod(askpass, 0o700) catch {};
+    chmodPath(askpass, 0o700);
     return askpass;
 }
 
@@ -1091,13 +1103,17 @@ fn gitEnv(allocator: std.mem.Allocator, password: []const u8, askpass: []const u
 }
 
 fn mkdtempPath(allocator: std.mem.Allocator, prefix: []const u8) ![]u8 {
+    const hex_chars = "0123456789abcdef";
     var attempts: u8 = 0;
     while (attempts < 16) : (attempts += 1) {
         var buf: [16]u8 = undefined;
         std.crypto.random.bytes(&buf);
         var hex_buf: [32]u8 = undefined;
-        const hex = std.fmt.bufPrint(&hex_buf, "{x}", .{std.fmt.fmtSliceHexLower(&buf)}) catch unreachable;
-        const path = try std.fmt.allocPrint(allocator, "/tmp/{s}{s}", .{ prefix, hex });
+        for (buf, 0..) |byte, i| {
+            hex_buf[i * 2] = hex_chars[byte >> 4];
+            hex_buf[i * 2 + 1] = hex_chars[byte & 0x0F];
+        }
+        const path = try std.fmt.allocPrint(allocator, "/tmp/{s}{s}", .{ prefix, hex_buf[0..] });
         std.fs.cwd().makeDir(path) catch |err| switch (err) {
             error.PathAlreadyExists => {
                 allocator.free(path);
@@ -1108,7 +1124,7 @@ fn mkdtempPath(allocator: std.mem.Allocator, prefix: []const u8) ![]u8 {
                 return err;
             },
         };
-        std.posix.chmod(path, 0o700) catch {};
+        chmodPath(path, 0o700);
         return path;
     }
     return error.MkdtempFailed;
@@ -1180,13 +1196,13 @@ fn solveStep(app: *App, step: *const Table, passwords: *std.AutoHashMap(i64, []c
         try recordPassword(app, to_level, pw);
     } else if (std.mem.eql(u8, step_type, "path_then_command")) {
         const to_level = try stepIntSingle(step);
-        var vars = try stepContextVars(allocator, app, from_level, from_password_owned, to_level);
+        const vars = try stepContextVars(allocator, app, from_level, from_password_owned, to_level);
         defer freeCtxVars(allocator, vars);
         const find_cmd = try renderTemplate(allocator, try stepMustString(step, "find_command"), vars);
         defer allocator.free(find_cmd);
         const path = try solvePath(app, from_user, from_password_owned, find_cmd);
         defer allocator.free(path);
-        var vars2: std.ArrayList(struct { key: []const u8, value: []const u8 }) = .{};
+        var vars2: std.ArrayList(Kv) = .{};
         try vars2.appendSlice(allocator, vars);
         try vars2.append(allocator, .{ .key = "path", .value = try allocator.dupe(u8, path) });
         const vars2_slice = try vars2.toOwnedSlice(allocator);
@@ -1513,7 +1529,7 @@ fn menu(app: *App, doc: *Document) !void {
 // =============================================================================
 
 pub fn main() !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var gpa: std.heap.DebugAllocator(.{}) = .init;
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
@@ -1646,7 +1662,7 @@ test "extract password returns last 32-char alphanumeric" {
 
 test "render template replaces placeholders" {
     const allocator = std.testing.allocator;
-    const vars = [_]struct { key: []const u8, value: []const u8 }{
+    const vars = [_]Kv{
         .{ .key = "level", .value = "7" },
         .{ .key = "password", .value = "abc" },
     };
