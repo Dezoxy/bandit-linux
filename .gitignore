@@ -45,6 +45,10 @@ venv/
 /csharp/**/*.user
 /csharp/.vs/
 
+# Rust
+/rust/target/
+/rust/Cargo.lock.bak
+
 # C
 /c/bin/
 *.o
