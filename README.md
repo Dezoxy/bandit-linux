@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Swift, and TypeScript rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, and TypeScript rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -16,9 +16,10 @@ The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust
 - `csharp/src/BanditHelper.cs` - C# (.NET) rewrite of the helper.
 - `rust/src/main.rs` - Rust rewrite of the helper.
 - `ruby/bandit_helper.rb` - Ruby rewrite of the helper.
+- `perl/bandit_helper.pl` - Perl rewrite of the helper, using only core Perl modules.
 - `swift/Sources/BanditCore/BanditCore.swift` - Swift rewrite of the helper (`swift/Sources/BanditHelperCLI/` thin CLI wrapper, `swift/Sources/BanditTest/` test runner).
 - `typescript/src/bandit-helper.ts` - TypeScript rewrite of the helper (compiles to `typescript/dist/`).
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Swift, and TypeScript.
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, and TypeScript.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -38,12 +39,12 @@ Local tools:
 - .NET SDK 9+ (only for the C# rewrite)
 - Rust 1.75+ and Cargo (only for the Rust rewrite)
 - Ruby 3.0+ and Bundler (only for the Ruby rewrite)
+- Perl 5.34+ (only for the Perl rewrite; no CPAN modules required)
 - Swift 5.10+ / 6.x (Apple toolchain, e.g. macOS Command Line Tools or Xcode — only for the Swift rewrite)
 - TypeScript 5.6+ (only for the TypeScript rewrite — shares the Node.js runtime with the Node port)
 - OpenSSH client
 - `expect`
 - `git`
-- `perl`
 - standard Unix tools: `awk`, `grep`, `mktemp`
 
 On macOS, install the missing dependency with:
@@ -439,6 +440,46 @@ cd ruby && bundle exec ruby test/test_bandit_helper.rb
 
 The Ruby port uses the [`toml-rb`](https://rubygems.org/gems/toml-rb) gem and the built-in [Minitest](https://docs.ruby-lang.org/en/master/Minitest.html) framework.
 
+## Perl Version
+
+Run the Perl rewrite:
+
+```bash
+perl perl/bandit_helper.pl
+```
+
+Refresh through Perl:
+
+```bash
+perl perl/bandit_helper.pl --refresh
+```
+
+Use another level config:
+
+```bash
+perl perl/bandit_helper.pl --config levels/bandit-levels.toml --refresh
+```
+
+Show saved passwords:
+
+```bash
+perl perl/bandit_helper.pl --show
+```
+
+SSH into a saved level:
+
+```bash
+perl perl/bandit_helper.pl --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+perl perl/test/test_bandit_helper.t
+```
+
+The Perl port uses only core modules and includes a small TOML reader tailored to `levels/bandit-levels.toml`.
+
 ## Swift Version
 
 Build the Swift rewrite:
@@ -551,7 +592,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Swift, and TypeScript implementations read level behavior from:
+The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Perl, Swift, and TypeScript implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml
@@ -590,6 +631,13 @@ For C:
 ```bash
 BANDIT_LEVELS_FILE=levels/bandit-levels.toml c/bin/bandit-helper --refresh
 c/bin/bandit-helper --config levels/bandit-levels.toml --refresh
+```
+
+For Perl:
+
+```bash
+BANDIT_LEVELS_FILE=levels/bandit-levels.toml perl perl/bandit_helper.pl --refresh
+perl perl/bandit_helper.pl --config levels/bandit-levels.toml --refresh
 ```
 
 ## Git Safety

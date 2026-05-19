@@ -55,6 +55,12 @@ venv/
 /ruby/vendor/cache/
 /ruby/*.gem
 
+# Perl
+/perl/local/
+/perl/blib/
+/perl/MYMETA.*
+/perl/pm_to_blib
+
 # Swift
 /swift/.build/
 /swift/.swiftpm/
@@ -69,10 +75,15 @@ venv/
 *.o
 *.dSYM/
 
+# Zig
+/zig/.zig-cache/
+/zig/zig-out/
+
 # macOS metadata
 .DS_Store
 
 # Editor and tool noise
+.claude/
 .idea/
 .vscode/
 *.swp
