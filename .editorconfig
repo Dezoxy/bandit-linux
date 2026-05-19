@@ -38,6 +38,14 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
+[*.rb]
+indent_style = space
+indent_size = 2
+
+[Gemfile]
+indent_style = space
+indent_size = 2
+
 [*.{c,h}]
 indent_style = space
 indent_size = 4

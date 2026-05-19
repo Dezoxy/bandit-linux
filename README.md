@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, and Rust rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, and Ruby rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -15,7 +15,8 @@ The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, and 
 - `node/bandit-helper.mjs` - Node.js (ES module) rewrite of the helper.
 - `csharp/src/BanditHelper.cs` - C# (.NET) rewrite of the helper.
 - `rust/src/main.rs` - Rust rewrite of the helper.
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, and Rust.
+- `ruby/bandit_helper.rb` - Ruby rewrite of the helper.
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, and Ruby.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -34,6 +35,7 @@ Local tools:
 - Node.js 20+ (only for the Node.js rewrite)
 - .NET SDK 9+ (only for the C# rewrite)
 - Rust 1.75+ and Cargo (only for the Rust rewrite)
+- Ruby 3.0+ and Bundler (only for the Ruby rewrite)
 - OpenSSH client
 - `expect`
 - `git`
@@ -393,6 +395,46 @@ cargo test --manifest-path rust/Cargo.toml
 
 The Rust port uses the [`toml`](https://crates.io/crates/toml), [`regex`](https://crates.io/crates/regex), and [`rand`](https://crates.io/crates/rand) crates.
 
+## Ruby Version
+
+Install dependencies once:
+
+```bash
+cd ruby && bundle install
+```
+
+Run the Ruby rewrite:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb
+```
+
+Refresh through Ruby:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb --refresh
+```
+
+Show saved passwords:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb --show
+```
+
+SSH into a saved level:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cd ruby && bundle exec ruby test/test_bandit_helper.rb
+```
+
+The Ruby port uses the [`toml-rb`](https://rubygems.org/gems/toml-rb) gem and the built-in [Minitest](https://docs.ruby-lang.org/en/master/Minitest.html) framework.
+
 ## Configuration
 
 The default target is:
@@ -407,7 +449,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, C, Kotlin, Node.js, C#, and Rust implementations read level behavior from:
+The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, and Ruby implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml

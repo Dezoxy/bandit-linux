@@ -49,6 +49,12 @@ venv/
 /rust/target/
 /rust/Cargo.lock.bak
 
+# Ruby
+/ruby/.bundle/
+/ruby/vendor/bundle/
+/ruby/vendor/cache/
+/ruby/*.gem
+
 # C
 /c/bin/
 *.o
