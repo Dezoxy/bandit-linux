@@ -70,14 +70,15 @@ venv/
 /typescript/dist/
 /typescript/*.tsbuildinfo
 
+# Zig
+/zig/zig-cache/
+/zig/.zig-cache/
+/zig/zig-out/
+
 # C
 /c/bin/
 *.o
 *.dSYM/
-
-# Zig
-/zig/.zig-cache/
-/zig/zig-out/
 
 # macOS metadata
 .DS_Store

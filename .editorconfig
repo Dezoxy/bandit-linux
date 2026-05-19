@@ -58,6 +58,10 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
+[*.zig]
+indent_style = space
+indent_size = 4
+
 [*.{c,h}]
 indent_style = space
 indent_size = 4
