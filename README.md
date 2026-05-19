@@ -55,6 +55,54 @@ On macOS, install the missing dependency with:
 brew install expect
 ```
 
+## Makefile
+
+The root `Makefile` orchestrates all language ports.
+
+Show available targets:
+
+```bash
+make help
+make list
+```
+
+Run offline checks:
+
+```bash
+make lint
+make test
+make build
+make smoke
+make verify
+```
+
+Run one implementation through the shared dispatcher:
+
+```bash
+make run LANG=go
+make show LANG=python
+make ssh LANG=rust LEVEL=12
+```
+
+Live OverTheWire refreshes are explicit and language-scoped:
+
+```bash
+make refresh LANG=perl
+make refresh-zig
+```
+
+Install package dependencies where a language needs them:
+
+```bash
+make deps
+```
+
+Remove build outputs without deleting dependencies or local Bandit state:
+
+```bash
+make clean
+```
+
 ## Usage
 
 Open the interactive menu:
@@ -505,19 +553,19 @@ cd swift && swift run bandit-helper
 Refresh through Swift:
 
 ```bash
-cd swift && swift run bandit-helper -- --refresh
+cd swift && swift run bandit-helper --refresh
 ```
 
 Show saved passwords:
 
 ```bash
-cd swift && swift run bandit-helper -- --show
+cd swift && swift run bandit-helper --show
 ```
 
 SSH into a saved level:
 
 ```bash
-cd swift && swift run bandit-helper -- --ssh 12
+cd swift && swift run bandit-helper --ssh 12
 ```
 
 Run the unit tests:
