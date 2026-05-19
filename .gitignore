@@ -59,6 +59,11 @@ venv/
 /swift/.build/
 /swift/.swiftpm/
 
+# TypeScript
+/typescript/node_modules/
+/typescript/dist/
+/typescript/*.tsbuildinfo
+
 # C
 /c/bin/
 *.o
