@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, and C rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Swift, and TypeScript rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -11,7 +11,14 @@ The Bash app is complete, and the Python, Go, Java, and C rewrites read the leve
 - `go/cmd/bandit-helper/` - Go rewrite of the helper and config-driven refresh flow.
 - `java/src/main/java/bandit/BanditHelper.java` - Java rewrite of the helper and config-driven refresh flow.
 - `c/bandit-helper.c` - C rewrite of the helper and config-driven refresh flow (vendored [tomlc99](https://github.com/cktan/tomlc99) under `c/vendor/tomlc99/`).
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, and C.
+- `kotlin/src/main/kotlin/bandit/BanditHelper.kt` - Kotlin rewrite of the helper, sharing the JVM toolchain with the Java port.
+- `node/bandit-helper.mjs` - Node.js (ES module) rewrite of the helper.
+- `csharp/src/BanditHelper.cs` - C# (.NET) rewrite of the helper.
+- `rust/src/main.rs` - Rust rewrite of the helper.
+- `ruby/bandit_helper.rb` - Ruby rewrite of the helper.
+- `swift/Sources/BanditCore/BanditCore.swift` - Swift rewrite of the helper (`swift/Sources/BanditHelperCLI/` thin CLI wrapper, `swift/Sources/BanditTest/` test runner).
+- `typescript/src/bandit-helper.ts` - TypeScript rewrite of the helper (compiles to `typescript/dist/`).
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Swift, and TypeScript.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -26,6 +33,13 @@ Local tools:
 - Go 1.26+
 - Java 25+ and Maven 3.9+ (only for the Java rewrite)
 - C11 compiler and `make` (only for the C rewrite)
+- Kotlin 2.x (only for the Kotlin rewrite — JDK 21+ via the same Maven install as the Java port)
+- Node.js 20+ (only for the Node.js rewrite)
+- .NET SDK 9+ (only for the C# rewrite)
+- Rust 1.75+ and Cargo (only for the Rust rewrite)
+- Ruby 3.0+ and Bundler (only for the Ruby rewrite)
+- Swift 5.10+ / 6.x (Apple toolchain, e.g. macOS Command Line Tools or Xcode — only for the Swift rewrite)
+- TypeScript 5.6+ (only for the TypeScript rewrite — shares the Node.js runtime with the Node port)
 - OpenSSH client
 - `expect`
 - `git`
@@ -225,6 +239,304 @@ make -C c test
 
 The TOML parser ([tomlc99](https://github.com/cktan/tomlc99), MIT) is vendored under `c/vendor/tomlc99/` so there is no system dependency to install.
 
+## Kotlin Version
+
+Build the Kotlin rewrite (reuses the Java port's JDK + Maven setup):
+
+```bash
+mvn -f kotlin/pom.xml package
+```
+
+Run the Kotlin rewrite:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar
+```
+
+Refresh through Kotlin:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar --refresh
+```
+
+Show saved passwords:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar --show
+```
+
+SSH into a saved level:
+
+```bash
+java -jar kotlin/target/bandit-helper.jar --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+mvn -f kotlin/pom.xml test
+```
+
+The Kotlin port shares `tomlj` with the Java port and targets the JVM, so no separate runtime install is needed beyond a JDK.
+
+## Node.js Version
+
+Install dependencies once:
+
+```bash
+cd node && npm install
+```
+
+Run the Node.js rewrite:
+
+```bash
+node node/bandit-helper.mjs
+```
+
+Refresh through Node.js:
+
+```bash
+node node/bandit-helper.mjs --refresh
+```
+
+Show saved passwords:
+
+```bash
+node node/bandit-helper.mjs --show
+```
+
+SSH into a saved level:
+
+```bash
+node node/bandit-helper.mjs --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cd node && npm test
+```
+
+The Node.js port uses [smol-toml](https://www.npmjs.com/package/smol-toml) for parsing.
+
+## C# Version
+
+Build the C# rewrite:
+
+```bash
+dotnet build csharp/src/BanditHelper.csproj -c Release
+```
+
+Run the C# rewrite:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj --
+```
+
+Refresh through C#:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj -- --refresh
+```
+
+Show saved passwords:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj -- --show
+```
+
+SSH into a saved level:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj -- --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+dotnet test csharp/test/BanditHelper.Tests.csproj
+```
+
+The C# port uses [Tomlyn](https://www.nuget.org/packages/Tomlyn) for TOML parsing and [xUnit](https://xunit.net/) for tests. Targets .NET 10.
+
+## Rust Version
+
+Build the Rust rewrite:
+
+```bash
+cargo build --release --manifest-path rust/Cargo.toml
+```
+
+Run the Rust rewrite:
+
+```bash
+rust/target/release/bandit-helper
+```
+
+Refresh through Rust:
+
+```bash
+rust/target/release/bandit-helper --refresh
+```
+
+Show saved passwords:
+
+```bash
+rust/target/release/bandit-helper --show
+```
+
+SSH into a saved level:
+
+```bash
+rust/target/release/bandit-helper --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cargo test --manifest-path rust/Cargo.toml
+```
+
+The Rust port uses the [`toml`](https://crates.io/crates/toml), [`regex`](https://crates.io/crates/regex), and [`rand`](https://crates.io/crates/rand) crates.
+
+## Ruby Version
+
+Install dependencies once:
+
+```bash
+cd ruby && bundle install
+```
+
+Run the Ruby rewrite:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb
+```
+
+Refresh through Ruby:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb --refresh
+```
+
+Show saved passwords:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb --show
+```
+
+SSH into a saved level:
+
+```bash
+cd ruby && bundle exec ruby bandit_helper.rb --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cd ruby && bundle exec ruby test/test_bandit_helper.rb
+```
+
+The Ruby port uses the [`toml-rb`](https://rubygems.org/gems/toml-rb) gem and the built-in [Minitest](https://docs.ruby-lang.org/en/master/Minitest.html) framework.
+
+## Swift Version
+
+Build the Swift rewrite:
+
+```bash
+cd swift && swift build -c release
+```
+
+Run the Swift rewrite:
+
+```bash
+swift/.build/release/bandit-helper
+```
+
+Or via Swift Package Manager:
+
+```bash
+cd swift && swift run bandit-helper
+```
+
+Refresh through Swift:
+
+```bash
+cd swift && swift run bandit-helper -- --refresh
+```
+
+Show saved passwords:
+
+```bash
+cd swift && swift run bandit-helper -- --show
+```
+
+SSH into a saved level:
+
+```bash
+cd swift && swift run bandit-helper -- --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cd swift && swift run bandit-test
+```
+
+The Swift port uses [TOMLKit](https://github.com/LebJe/TOMLKit) for parsing. Because Apple's macOS Command Line Tools don't ship XCTest or `swift-testing` separately, the test target is a small executable (`bandit-test`) that runs assertions and exits non-zero on failure. With a full Xcode install you could swap it for an XCTest target.
+
+## TypeScript Version
+
+Install dependencies once:
+
+```bash
+cd typescript && npm install
+```
+
+Build:
+
+```bash
+cd typescript && npm run build
+```
+
+Run the TypeScript rewrite:
+
+```bash
+node typescript/dist/src/bandit-helper.js
+```
+
+Refresh through TypeScript:
+
+```bash
+node typescript/dist/src/bandit-helper.js --refresh
+```
+
+Show saved passwords:
+
+```bash
+node typescript/dist/src/bandit-helper.js --show
+```
+
+SSH into a saved level:
+
+```bash
+node typescript/dist/src/bandit-helper.js --ssh 12
+```
+
+Run the unit tests (rebuilds first):
+
+```bash
+cd typescript && npm test
+```
+
+Type-check only (no emit):
+
+```bash
+cd typescript && npm run typecheck
+```
+
+The TypeScript port reuses [`smol-toml`](https://www.npmjs.com/package/smol-toml) and adds full type annotations on top of the Node.js logic. Tests run on the compiled `.js` output via the built-in `node:test` runner.
+
 ## Configuration
 
 The default target is:
@@ -239,7 +551,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, and C implementations read level behavior from:
+The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, Swift, and TypeScript implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml

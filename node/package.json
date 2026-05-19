@@ -1,0 +1,20 @@
+{
+  "name": "bandit-helper",
+  "version": "1.0.0",
+  "description": "Node.js port of the OverTheWire Bandit solver",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "bandit-helper": "./bandit-helper.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node ./bandit-helper.mjs",
+    "test": "node --test 'test/*.test.mjs'"
+  },
+  "dependencies": {
+    "smol-toml": "^1.4.2"
+  }
+}

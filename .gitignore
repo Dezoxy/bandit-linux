@@ -30,6 +30,40 @@ venv/
 /java/dependency-reduced-pom.xml
 *.class
 
+# Kotlin
+/kotlin/target/
+/kotlin/.mvn/
+/kotlin/dependency-reduced-pom.xml
+
+# Node.js
+/node/node_modules/
+/node/npm-debug.log*
+
+# C# / .NET
+/csharp/**/bin/
+/csharp/**/obj/
+/csharp/**/*.user
+/csharp/.vs/
+
+# Rust
+/rust/target/
+/rust/Cargo.lock.bak
+
+# Ruby
+/ruby/.bundle/
+/ruby/vendor/bundle/
+/ruby/vendor/cache/
+/ruby/*.gem
+
+# Swift
+/swift/.build/
+/swift/.swiftpm/
+
+# TypeScript
+/typescript/node_modules/
+/typescript/dist/
+/typescript/*.tsbuildinfo
+
 # C
 /c/bin/
 *.o
