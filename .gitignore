@@ -39,6 +39,12 @@ venv/
 /node/node_modules/
 /node/npm-debug.log*
 
+# C# / .NET
+/csharp/**/bin/
+/csharp/**/obj/
+/csharp/**/*.user
+/csharp/.vs/
+
 # C
 /c/bin/
 *.o

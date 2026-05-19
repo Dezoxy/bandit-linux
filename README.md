@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, C, Kotlin, and Node.js rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, and C# rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -13,7 +13,8 @@ The Bash app is complete, and the Python, Go, Java, C, Kotlin, and Node.js rewri
 - `c/bandit-helper.c` - C rewrite of the helper and config-driven refresh flow (vendored [tomlc99](https://github.com/cktan/tomlc99) under `c/vendor/tomlc99/`).
 - `kotlin/src/main/kotlin/bandit/BanditHelper.kt` - Kotlin rewrite of the helper, sharing the JVM toolchain with the Java port.
 - `node/bandit-helper.mjs` - Node.js (ES module) rewrite of the helper.
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, and Node.js.
+- `csharp/src/BanditHelper.cs` - C# (.NET) rewrite of the helper.
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, and C#.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -30,6 +31,7 @@ Local tools:
 - C11 compiler and `make` (only for the C rewrite)
 - Kotlin 2.x (only for the Kotlin rewrite — JDK 21+ via the same Maven install as the Java port)
 - Node.js 20+ (only for the Node.js rewrite)
+- .NET SDK 9+ (only for the C# rewrite)
 - OpenSSH client
 - `expect`
 - `git`
@@ -309,6 +311,46 @@ cd node && npm test
 
 The Node.js port uses [smol-toml](https://www.npmjs.com/package/smol-toml) for parsing.
 
+## C# Version
+
+Build the C# rewrite:
+
+```bash
+dotnet build csharp/src/BanditHelper.csproj -c Release
+```
+
+Run the C# rewrite:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj --
+```
+
+Refresh through C#:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj -- --refresh
+```
+
+Show saved passwords:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj -- --show
+```
+
+SSH into a saved level:
+
+```bash
+dotnet run --project csharp/src/BanditHelper.csproj -- --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+dotnet test csharp/test/BanditHelper.Tests.csproj
+```
+
+The C# port uses [Tomlyn](https://www.nuget.org/packages/Tomlyn) for TOML parsing and [xUnit](https://xunit.net/) for tests. Targets .NET 10.
+
 ## Configuration
 
 The default target is:
@@ -323,7 +365,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, C, Kotlin, and Node.js implementations read level behavior from:
+The Python, Go, Java, C, Kotlin, Node.js, and C# implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml
