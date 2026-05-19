@@ -5,6 +5,7 @@ ifeq ($(origin LANG), environment)
 LANG := python
 endif
 LANG ?= python
+unexport LANG
 LEVEL ?=
 
 PYTHON ?= python3
