@@ -55,6 +55,10 @@ venv/
 /ruby/vendor/cache/
 /ruby/*.gem
 
+# Swift
+/swift/.build/
+/swift/.swiftpm/
+
 # C
 /c/bin/
 *.o

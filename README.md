@@ -2,7 +2,7 @@
 
 Interactive helpers and password refreshers for the OverTheWire Bandit wargame.
 
-The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, and Ruby rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
+The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, and Swift rewrites read the level flow from a shared config file. All apps can SSH into saved levels, print the local password file, and refresh solved passwords from `bandit0` through `bandit33`.
 
 ## Layout
 
@@ -16,7 +16,8 @@ The Bash app is complete, and the Python, Go, Java, C, Kotlin, Node.js, C#, Rust
 - `csharp/src/BanditHelper.cs` - C# (.NET) rewrite of the helper.
 - `rust/src/main.rs` - Rust rewrite of the helper.
 - `ruby/bandit_helper.rb` - Ruby rewrite of the helper.
-- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, and Ruby.
+- `swift/Sources/BanditCore/BanditCore.swift` - Swift rewrite of the helper (`swift/Sources/BanditHelperCLI/` thin CLI wrapper, `swift/Sources/BanditTest/` test runner).
+- `levels/bandit-levels.toml` - level definitions, commands, key names, and git repo paths for Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, and Swift.
 - `test-fixtures/outputs/` - placeholder for captured command-output fixtures.
 - `bandit-passwords.example` - safe template for local password state.
 - `bandit-passwords.txt` - generated local password file, ignored by Git.
@@ -36,6 +37,7 @@ Local tools:
 - .NET SDK 9+ (only for the C# rewrite)
 - Rust 1.75+ and Cargo (only for the Rust rewrite)
 - Ruby 3.0+ and Bundler (only for the Ruby rewrite)
+- Swift 5.10+ / 6.x (Apple toolchain, e.g. macOS Command Line Tools or Xcode — only for the Swift rewrite)
 - OpenSSH client
 - `expect`
 - `git`
@@ -435,6 +437,52 @@ cd ruby && bundle exec ruby test/test_bandit_helper.rb
 
 The Ruby port uses the [`toml-rb`](https://rubygems.org/gems/toml-rb) gem and the built-in [Minitest](https://docs.ruby-lang.org/en/master/Minitest.html) framework.
 
+## Swift Version
+
+Build the Swift rewrite:
+
+```bash
+cd swift && swift build -c release
+```
+
+Run the Swift rewrite:
+
+```bash
+swift/.build/release/bandit-helper
+```
+
+Or via Swift Package Manager:
+
+```bash
+cd swift && swift run bandit-helper
+```
+
+Refresh through Swift:
+
+```bash
+cd swift && swift run bandit-helper -- --refresh
+```
+
+Show saved passwords:
+
+```bash
+cd swift && swift run bandit-helper -- --show
+```
+
+SSH into a saved level:
+
+```bash
+cd swift && swift run bandit-helper -- --ssh 12
+```
+
+Run the unit tests:
+
+```bash
+cd swift && swift run bandit-test
+```
+
+The Swift port uses [TOMLKit](https://github.com/LebJe/TOMLKit) for parsing. Because Apple's macOS Command Line Tools don't ship XCTest or `swift-testing` separately, the test target is a small executable (`bandit-test`) that runs assertions and exits non-zero on failure. With a full Xcode install you could swap it for an XCTest target.
+
 ## Configuration
 
 The default target is:
@@ -449,7 +497,7 @@ Override it with environment variables:
 BANDIT_HOST=bandit.labs.overthewire.org BANDIT_PORT=2220 ./bash/bandit-helper.sh --refresh
 ```
 
-The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, and Ruby implementations read level behavior from:
+The Python, Go, Java, C, Kotlin, Node.js, C#, Rust, Ruby, and Swift implementations read level behavior from:
 
 ```text
 levels/bandit-levels.toml
