@@ -355,12 +355,19 @@ fn envOr(name: []const u8, fallback: []const u8) []const u8 {
 }
 
 fn chmodPath(path: []const u8, mode: u32) void {
-    var buf: [std.fs.max_path_bytes]u8 = undefined;
-    if (path.len + 1 >= buf.len) return;
-    @memcpy(buf[0..path.len], path);
-    buf[path.len] = 0;
-    const cstr: [*:0]const u8 = @ptrCast(&buf);
-    _ = std.c.chmod(cstr, @intCast(mode));
+    // Use Zig's native fchmod-based APIs (via File.chmod / Dir.chmod) so the
+    // port does not require libc to be linked. Stat first to dispatch.
+    const st = std.fs.cwd().statFile(path) catch return;
+    const m: std.fs.File.Mode = @intCast(mode);
+    if (st.kind == .directory) {
+        var dir = std.fs.cwd().openDir(path, .{}) catch return;
+        defer dir.close();
+        dir.chmod(m) catch {};
+    } else {
+        const f = std.fs.cwd().openFile(path, .{}) catch return;
+        defer f.close();
+        f.chmod(m) catch {};
+    }
 }
 
 fn findRepoRoot(allocator: std.mem.Allocator) ![]const u8 {
