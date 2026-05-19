@@ -19,7 +19,9 @@ BUNDLE ?= $(shell if [ -x /opt/homebrew/opt/ruby/bin/bundle ]; then printf '%s\n
 RUBY ?= $(shell if [ -x /opt/homebrew/opt/ruby/bin/ruby ]; then printf '%s\n' /opt/homebrew/opt/ruby/bin/ruby; elif command -v ruby >/dev/null 2>&1; then command -v ruby; else printf '%s\n' ruby; fi)
 PERL ?= perl
 SWIFT ?= swift
-JAVA ?= $(shell if [ -x /opt/homebrew/opt/openjdk/bin/java ]; then printf '%s\n' /opt/homebrew/opt/openjdk/bin/java; elif command -v java >/dev/null 2>&1; then command -v java; else printf '%s\n' java; fi)
+JAVA_HOME_FOR_MAVEN ?= $(shell if [ -d /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home ]; then printf '%s\n' /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home; elif [ -d /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ]; then printf '%s\n' /opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home; elif [ -n "$$JAVA_HOME" ]; then printf '%s\n' "$$JAVA_HOME"; else printf '%s\n' ""; fi)
+JAVA ?= $(shell if [ -n "$(JAVA_HOME_FOR_MAVEN)" ] && [ -x "$(JAVA_HOME_FOR_MAVEN)/bin/java" ]; then printf '%s\n' "$(JAVA_HOME_FOR_MAVEN)/bin/java"; elif command -v java >/dev/null 2>&1; then command -v java; else printf '%s\n' java; fi)
+MAVEN_WITH_JAVA = JAVA_HOME="$(JAVA_HOME_FOR_MAVEN)" PATH="$(JAVA_HOME_FOR_MAVEN)/bin:$$PATH" $(MAVEN)
 ZIG ?= $(shell if [ -x /opt/homebrew/opt/zig@0.15/bin/zig ]; then printf '%s\n' /opt/homebrew/opt/zig@0.15/bin/zig; elif command -v zig >/dev/null 2>&1; then command -v zig; else printf '%s\n' zig; fi)
 
 LANGUAGES := bash python go java c kotlin node csharp rust ruby perl swift typescript zig
@@ -67,6 +69,7 @@ list:
 	@printf 'Default LANG: %s\n' "$(LANG)"
 	@printf 'Zig command: %s\n' "$(ZIG)"
 	@printf 'Java command: %s\n' "$(JAVA)"
+	@printf 'Maven JAVA_HOME: %s\n' "$(JAVA_HOME_FOR_MAVEN)"
 
 all: build
 
@@ -82,10 +85,10 @@ deps-ruby:
 	cd ruby && $(BUNDLE) install
 
 deps-java:
-	$(MAVEN) -q -f java/pom.xml dependency:go-offline
+	$(MAVEN_WITH_JAVA) -q -f java/pom.xml dependency:go-offline
 
 deps-kotlin:
-	$(MAVEN) -q -f kotlin/pom.xml dependency:go-offline
+	$(MAVEN_WITH_JAVA) -q -f kotlin/pom.xml dependency:go-offline
 
 deps-csharp:
 	$(DOTNET) restore csharp/test/BanditHelper.Tests.csproj
@@ -157,13 +160,13 @@ test-go:
 	cd go && $(GO) test ./...
 
 test-java:
-	$(MAVEN) -q -f java/pom.xml test
+	$(MAVEN_WITH_JAVA) -q -f java/pom.xml test
 
 test-c:
 	$(MAKE) -C c test
 
 test-kotlin:
-	$(MAVEN) -q -f kotlin/pom.xml test
+	$(MAVEN_WITH_JAVA) -q -f kotlin/pom.xml test
 
 test-node:
 	cd node && $(NPM) test
@@ -197,13 +200,13 @@ build-go:
 	cd go && $(GO) build ./cmd/bandit-helper
 
 build-java:
-	$(MAVEN) -q -f java/pom.xml package
+	$(MAVEN_WITH_JAVA) -q -f java/pom.xml package
 
 build-c:
 	$(MAKE) -C c
 
 build-kotlin:
-	$(MAVEN) -q -f kotlin/pom.xml package
+	$(MAVEN_WITH_JAVA) -q -f kotlin/pom.xml package
 
 build-node: lint-node
 
